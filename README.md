@@ -1,6 +1,6 @@
 # ESP32 Offline Password Manager + TOTP
 
-This project will build a handheld offline password manager and TOTP generator using an ESP32-S3, TFT display, DS3231 RTC, and four buttons.
+This project I'm building a handheld offline password manager and TOTP generator using an ESP32-S3, TFT display, DS3231 RTC, and four buttons.
 
 ## Current progress
 
