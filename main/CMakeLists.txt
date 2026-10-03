@@ -1,0 +1,23 @@
+idf_component_register(
+    SRCS
+        "main.cpp"
+        "crypto_esp.cpp"
+        "../core/totp.cpp"
+        "../core/vault.cpp"
+        "admin.cpp"
+        "rtc.cpp"
+    INCLUDE_DIRS
+        "."
+        "../core"
+    PRIV_REQUIRES
+        freertos
+        log
+        mbedtls
+        esp_hw_support
+        bootloader_support
+        esp_partition
+        esp_timer
+        esp_driver_usb_serial_jtag
+        esp_driver_i2c
+        esp_driver_gpio
+)

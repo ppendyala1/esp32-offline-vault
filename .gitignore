@@ -1,5 +1,9 @@
-build/
-__pycache__/
-*.pyc
 .pio/
 .vscode/
+build/
+build-idf/
+__pycache__/
+*.pyc
+.venv/
+venv/
+sdkconfig.old
