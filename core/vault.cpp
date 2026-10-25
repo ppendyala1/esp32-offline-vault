@@ -58,7 +58,7 @@ struct Scan {
 // Authenticate every committed record, including deletion records.
 // A later record for an ID replaces the earlier one.
 Status scan(Flash& flash, const uint8_t key[32], uint32_t wanted,
-            uint32_t after, Scan& result, Credential* account) {
+            uint32_t after, Scan& result, Credential* account, bool backwards = false) {
     result = Scan{};
     const uint32_t slots = (flash.size() - HEADER_SIZE) / RECORD_SIZE;
     uint8_t bytes[RECORD_SIZE];
@@ -98,7 +98,9 @@ Status scan(Flash& flash, const uint8_t key[32], uint32_t wanted,
                 if (kind == ACCOUNT) memcpy(account, &decoded, sizeof(decoded));
             }
         }
-        if (id > after &&
+        if (backwards && (after == 0 || id < after) && id > result.candidate)
+            result.candidate = id;
+        if (!backwards && id > after &&
             (result.candidate == 0 || id < result.candidate))
             result.candidate = id;
         wipe(&decoded, sizeof(decoded));
@@ -259,6 +261,24 @@ Status Vault::next(uint32_t after_id, uint32_t& id) {
             return Status::OK;
         }
         after_id = candidate;
+    }
+}
+Status Vault::previous(uint32_t before_id, uint32_t& id) {
+    id = 0;
+    if (!unlocked_) return Status::LOCKED;
+    for (;;) {
+        Scan result;
+        Status status = scan(flash_, key_, 0, before_id, result, nullptr, true);
+        if (status != Status::OK) return status;
+        if (result.candidate == 0) return Status::NOT_FOUND;
+        const uint32_t candidate = result.candidate;
+        status = scan(flash_, key_, candidate, 0, result, nullptr);
+        if (status != Status::OK) return status;
+        if (result.found && !result.deleted) {
+            id = candidate;
+            return Status::OK;
+        }
+        before_id = candidate;
     }
 }
 } // namespace vault

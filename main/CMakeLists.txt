@@ -1,11 +1,15 @@
 idf_component_register(
     SRCS
         "main.cpp"
-        "crypto_esp.cpp"
+        "platform/crypto_esp.cpp"
         "../core/totp.cpp"
         "../core/vault.cpp"
-        "admin.cpp"
-        "rtc.cpp"
+        "usb/admin.cpp"
+        "drivers/rtc.cpp"
+        "drivers/display.cpp"
+        "ui/ui.cpp"
+        "diagnostics/self_test.cpp"
+        "../core/session.cpp"
     INCLUDE_DIRS
         "."
         "../core"
@@ -20,4 +24,5 @@ idf_component_register(
         esp_driver_usb_serial_jtag
         esp_driver_i2c
         esp_driver_gpio
+        esp_driver_spi
 )

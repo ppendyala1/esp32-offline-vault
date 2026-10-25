@@ -1,0 +1,8 @@
+menu "Offline Vault"
+config VAULT_SELF_TEST
+    bool "Run dummy-credential crypto self-tests at boot"
+    default n
+    help
+        Exercises target PSA crypto and RFC TOTP. Requires running on the board.
+        Does not access or erase the vault partition. Failures stop the app.
+endmenu

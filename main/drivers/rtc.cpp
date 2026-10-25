@@ -8,6 +8,11 @@ constexpr uint8_t RTC_ADDRESS = 0x68;
 constexpr uint8_t CONTROL_REG = 0x0E;
 constexpr uint8_t STATUS_REG = 0x0F;
 constexpr uint8_t OSCILLATOR_STOP = 0x80;
+// Alarm 2 is unused by this application. Its minute register is a persistent
+// update journal, using valid masked BCD values (never an invalid calendar).
+constexpr uint8_t JOURNAL_REG = 0x0B;
+constexpr uint8_t TIME_VALID = 0xA5;
+constexpr uint8_t TIME_DIRTY = 0x80;
 
 constexpr int TIMEOUT_MS = 100;
 constexpr uint64_t UNIX_2000 = 946684800ULL;
@@ -159,6 +164,11 @@ esp_err_t DS3231::read_unix(uint64_t& seconds)
         return ESP_ERR_INVALID_STATE;
     }
 
+    uint8_t journal = 0;
+    err = read_registers(JOURNAL_REG, &journal, 1);
+    if (err != ESP_OK) return err;
+    if (journal != TIME_VALID) return ESP_ERR_INVALID_STATE;
+
     uint8_t registers[7] = {};
     err = read_registers(0x00, registers, sizeof(registers));
 
@@ -272,10 +282,9 @@ esp_err_t DS3231::set_unix(uint64_t seconds)
         return err;
     }
 
-    // Mark time invalid until the complete update succeeds.
-    // Writing 1 to alarm flags preserves their existing state.
-    status |= OSCILLATOR_STOP | 0x03;
-    err = write_registers(STATUS_REG, &status, 1);
+    // OSF cannot be set by software. Mark the update in a battery-backed alarm
+    // register first, so a reset/partial time write remains invalid on reboot.
+    err = write_registers(JOURNAL_REG, &TIME_DIRTY, 1);
     if (err != ESP_OK) {
         return err;
     }
@@ -286,8 +295,8 @@ esp_err_t DS3231::set_unix(uint64_t seconds)
         return err;
     }
 
-    // Enable oscillator operation while running on backup battery.
-    control &= static_cast<uint8_t>(~0x80);
+    // Enable backup oscillator operation; reserve/disable Alarm 2 interrupts.
+    control &= static_cast<uint8_t>(~0x82);
     err = write_registers(CONTROL_REG, &control, 1);
     if (err != ESP_OK) {
         return err;
@@ -304,6 +313,11 @@ esp_err_t DS3231::set_unix(uint64_t seconds)
     };
 
     err = write_registers(0x00, registers, sizeof(registers));
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    err = write_registers(JOURNAL_REG, &TIME_VALID, 1);
     if (err != ESP_OK) {
         return err;
     }

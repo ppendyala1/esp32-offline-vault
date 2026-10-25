@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/vault.h"
+#include "vault.h"
 #include "esp_partition.h"
 
 class EspFlash final : public vault::Flash {

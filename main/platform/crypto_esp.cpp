@@ -1,4 +1,4 @@
-#include "../core/crypto.h"
+#include "crypto.h"
 
 #include "psa/crypto.h"
 #include "esp_random.h"

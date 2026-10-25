@@ -86,6 +86,8 @@ public:
     // Find the next live account after an ID.
     // Use after_id = 0 to start browsing.
     Status next(uint32_t after_id, uint32_t& id);
+    // Find the previous live account. before_id = 0 starts at the last ID.
+    Status previous(uint32_t before_id, uint32_t& id);
 
     uint32_t capacity() const;
 

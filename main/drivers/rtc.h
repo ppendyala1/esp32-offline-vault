@@ -19,7 +19,8 @@ public:
     esp_err_t begin(gpio_num_t sda, gpio_num_t scl);
 
     // Read UTC Unix time.
-    // Reject invalid dates or an oscillator-stop indication.
+    // Reject invalid dates, oscillator stop, or incomplete time updates.
+    // Alarm 2 minute register is reserved as a persistent validity journal.
     esp_err_t read_unix(uint64_t& seconds);
 
     // Set UTC Unix time, supporting years 2000–2099.

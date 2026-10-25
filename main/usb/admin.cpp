@@ -7,7 +7,7 @@
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "../core/totp.h"
+#include "totp.h"
 namespace {
 
 constexpr int64_t TIMEOUT_US = 60LL * 1000000;
@@ -61,27 +61,30 @@ void report(vault::Status status) {
 
 // Input is never echoed back by the device.
 // Overlong lines are discarded instead of truncated.
-bool read_line(vault::Vault& manager,
+bool read_line(UI& ui,
                char* out, size_t capacity,
                int64_t& last_activity,
                bool prompt_timeout) {
     static bool skip_lf = false;
+    const uint32_t epoch = ui.session.lock_epoch;
 
     size_t used = 0;
     bool overflow = false;
     out[0] = '\0';
 
     while (true) {
+        ui.poll();
+        if (epoch != ui.session.lock_epoch) {
+            vault::wipe(out, capacity);
+            send("\r\nLocked; input cancelled.\r\n");
+            return false;
+        }
         const int64_t now = esp_timer_get_time();
 
         if (now - last_activity >= TIMEOUT_US) {
-            if (manager.unlocked()) {
-                manager.lock();
-                send("\r\nAutomatically locked.\r\n");
-            }
-
             if (prompt_timeout || used != 0 || overflow) {
                 vault::wipe(out, capacity);
+                ui.lock();
                 return false;
             }
         }
@@ -94,6 +97,7 @@ bool read_line(vault::Vault& manager,
         }
 
         last_activity = esp_timer_get_time();
+        ui.activity();
 
         if (skip_lf) {
             skip_lf = false;
@@ -138,28 +142,27 @@ bool read_line(vault::Vault& manager,
 
 }  // namespace
 
-void run_admin(vault::Vault& manager) {
+void run_admin(vault::Vault& manager, UI& ui) {
     usb_serial_jtag_driver_config_t config = {};
     config.rx_buffer_size = 512;
     config.tx_buffer_size = 512;
 
     if (usb_serial_jtag_driver_install(&config) != ESP_OK) {
-        manager.lock();
-        return;
+        ui.lock();
+        while (true) { ui.poll(); vTaskDelay(pdMS_TO_TICKS(10)); }
     }
 
-    manager.lock();
+    ui.lock();
     int64_t last_activity = esp_timer_get_time();
 
     send("\r\nESP32 Offline Vault\r\n");
-    send("Commands: init unlock lock status help\r\n");
+    send("Commands: init unlock add list delete time lock status help\r\n");
 
     while (true) {
         char command[24] = {};
         send("> ");
 
-        if (!read_line(
-                manager, command, sizeof(command),
+        if (!read_line(ui, command, sizeof(command),
                 last_activity, false)) {
             continue;
         }
@@ -172,16 +175,14 @@ void run_admin(vault::Vault& manager) {
 
             send("Master password: ");
 
-            bool ready = read_line(
-                manager, password, sizeof(password),
+            bool ready = read_line(ui, password, sizeof(password),
                 last_activity, true
             );
 
             if (ready && creating) {
                 send("Confirm master password: ");
 
-                ready = read_line(
-                    manager, confirmation, sizeof(confirmation),
+                ready = read_line(ui, confirmation, sizeof(confirmation),
                     last_activity, true
                 );
 
@@ -192,7 +193,7 @@ void run_admin(vault::Vault& manager) {
                 }
             }
             if (ready) {
-                report(creating ? manager.initialize(password) : manager.unlock(password));
+                report(ui.authenticate(password, creating));
                 last_activity = esp_timer_get_time();
             }
 
@@ -208,12 +209,11 @@ void run_admin(vault::Vault& manager) {
                 bool ready = true;
 
                 send("Account name: ");
-                ready = read_line(manager, account.name, sizeof(account.name), last_activity, true);
+                ready = read_line(ui, account.name, sizeof(account.name), last_activity, true);
 
                 if (ready) {
                     send("Username: ");
-                    ready = read_line(
-                        manager, account.username,
+                    ready = read_line(ui, account.username,
                         sizeof(account.username),
                         last_activity, true
                     );
@@ -221,12 +221,12 @@ void run_admin(vault::Vault& manager) {
 
                 if (ready) {
                     send("Account password: ");
-                    ready = read_line(manager, account.password, sizeof(account.password), last_activity, true);
+                    ready = read_line(ui, account.password, sizeof(account.password), last_activity, true);
                 }
 
                 if (ready) {
                     send("Base32 TOTP secret (blank to skip): ");
-                    ready = read_line(manager, base32, sizeof(base32), last_activity, true);
+                    ready = read_line(ui, base32, sizeof(base32), last_activity, true);
                 }
 
                 account.digits = 6;
@@ -275,7 +275,7 @@ void run_admin(vault::Vault& manager) {
                 while (true) {
                     if (esp_timer_get_time() - last_activity >=
                         TIMEOUT_US) {
-                        manager.lock();
+                        ui.lock();
                         send("Automatically locked.\r\n");
                         break;
                     }
@@ -303,7 +303,7 @@ void run_admin(vault::Vault& manager) {
                     if (esp_timer_get_time() - last_activity >=
                         TIMEOUT_US) {
                         vault::wipe(&account, sizeof(account));
-                        manager.lock();
+                        ui.lock();
                         send("Automatically locked.\r\n");
                         break;
                     }
@@ -334,7 +334,7 @@ void run_admin(vault::Vault& manager) {
                 char text[16] = {};
                 send("Account ID to delete: ");
 
-                if (read_line(manager, text, sizeof(text), last_activity, true)) {
+                if (read_line(ui, text, sizeof(text), last_activity, true)) {
                     uint32_t id = 0;
                     bool valid = text[0] != '\0';
 
@@ -356,7 +356,7 @@ void run_admin(vault::Vault& manager) {
                     else {
                         char confirmation[8] = {};
                         send("Type YES to delete: ");
-                        if (read_line(manager, confirmation, sizeof(confirmation), last_activity, true) && strcmp(confirmation, "YES") == 0) {
+                        if (read_line(ui, confirmation, sizeof(confirmation), last_activity, true) && strcmp(confirmation, "YES") == 0) {
                             report(manager.remove(id));
                             last_activity = esp_timer_get_time();
                         } 
@@ -369,19 +369,48 @@ void run_admin(vault::Vault& manager) {
                 vault::wipe(text, sizeof(text));
             }
         }
+        else if (strcmp(command, "time") == 0) {
+            if (!manager.unlocked()) report(vault::Status::LOCKED);
+            else {
+                char text[24] = {};
+                send("UTC Unix seconds (2000-2099): ");
+                if (read_line(ui, text, sizeof(text), last_activity, true)) {
+                    uint64_t seconds = 0;
+                    bool valid = text[0] != 0;
+                    for (size_t i = 0; text[i]; ++i) {
+                        const unsigned digit = static_cast<unsigned>(text[i] - '0');
+                        if (digit > 9 || seconds > (UINT64_MAX - digit) / 10) { valid = false; break; }
+                        seconds = seconds * 10 + digit;
+                    }
+                    if (!manager.unlocked()) report(vault::Status::LOCKED);
+                    else if (!valid) send("Invalid UTC seconds.\r\n");
+                    else {
+                        uint64_t readback = 0;
+                        if (ui.rtc.set_unix(seconds) == ESP_OK &&
+                            ui.rtc.read_unix(readback) == ESP_OK &&
+                            readback >= seconds && readback - seconds <= 1)
+                            send("OK time set and read back.\r\n");
+                        else send("RTC update/readback failed.\r\n");
+                    }
+                }
+                vault::wipe(text, sizeof(text));
+            }
+        }
         else if (strcmp(command, "lock") == 0) {
-            manager.lock();
+            ui.lock();
             send("Locked.\r\n");
         } 
         else if (strcmp(command, "status") == 0) {
             send(manager.unlocked() ? "Unlocked.\r\n" : "Locked.\r\n");
         } 
         else if (strcmp(command, "help") == 0) {
-            send("Commands: init unlock add list delete lock status help\r\n");
+            send("Commands: init unlock add list delete time lock status help\r\n");
         } 
         else if (command[0] != '\0') {
-            send("Commands: init unlock add list delete lock status help\r\n");
+            send("Commands: init unlock add list delete time lock status help\r\n");
         }
         vault::wipe(command, sizeof(command));
+        ui.session.refresh();
+        ui.poll();
     }
 }
