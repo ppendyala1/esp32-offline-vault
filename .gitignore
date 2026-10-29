@@ -2,6 +2,7 @@
 .vscode/
 build/
 build-idf/
+build-host/
 __pycache__/
 *.pyc
 .venv/

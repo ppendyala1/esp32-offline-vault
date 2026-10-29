@@ -1,0 +1,9 @@
+#pragma once
+#include <stddef.h>
+extern "C" {
+void* memcpy(void*, const void*, size_t);
+void* memset(void*, int, size_t);
+void* memchr(const void*, int, size_t);
+int memcmp(const void*, const void*, size_t);
+size_t strlen(const char*);
+}
