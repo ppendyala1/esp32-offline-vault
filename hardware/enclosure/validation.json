@@ -1,0 +1,17 @@
+{
+  "base": {
+    "valid": true,
+    "volume_mm3": 73208.58,
+    "solids": 1
+  },
+  "lid": {
+    "valid": true,
+    "volume_mm3": 24876.62,
+    "solids": 1
+  },
+  "electronics_tray": {
+    "valid": true,
+    "volume_mm3": 3984.0,
+    "solids": 1
+  }
+}

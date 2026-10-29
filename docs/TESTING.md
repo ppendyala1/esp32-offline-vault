@@ -14,6 +14,8 @@ The installed SDK emitted upstream Kconfig/default-value and component-dependenc
 
 ## Host software tests
 
+On October 28, the enclosure preview renderer was executed and the resulting assembled, exploded, and component PNGs were visually inspected. Input STEP/STL hashes were checked against the preserved hardware snapshot. This is documentation/mesh-render verification only; no KiCad board, SolidWorks import, physical fit, or electronics hardware was tested.
+
 Install [tools/requirements.txt](../tools/requirements.txt). Windows needs native LLVM with lld or a portable Zig compiler; Espressif's esp-clang contains embedded targets only. Reproduce the workspace-local compiler setup:
 
 ```powershell

@@ -4,9 +4,11 @@ ESP-IDF firmware for the **Adafruit Feather ESP32-S3 PID 5477 (4 MB flash / 2 MB
 
 Implemented: on-device master-password unlock, encrypted account browsing, temporary password reveal, RTC-based TOTP/countdown, debounced buttons, automatic locking, and USB initialization/provisioning/time setting. The existing vault format and partition offsets are preserved. The desktop demo remains available with its separate storage format.
 
-**Status:** software verification does not qualify the hardware. The display, buttons, RTC changes, battery operation, and enclosure require the board checks in [docs/TESTING.md](docs/TESTING.md). The enclosure is an untested mechanical prototype.
+**Status:** software verification does not qualify the hardware. The display, buttons, RTC changes, battery operation, and enclosure require the board checks in [docs/TESTING.md](docs/TESTING.md). [hardware/enclosure](hardware/enclosure) is an untested mechanical prototype; its existing files have been preserved.
 
-The first hardware build uses wired breakout boards; no custom KiCad PCB is required.
+The first hardware build is intended to use wired breakout boards; no custom KiCad PCB is included or required. See [hardware previews and assembly options](docs/HARDWARE_PREVIEWS.md) for the recommendation and the existing enclosure geometry:
+
+![Existing enclosure geometry preview, not a SolidWorks screenshot](docs/images/enclosure-assembled.png)
 
 ## Wiring
 
@@ -26,7 +28,7 @@ Follow [docs/WIRING.md](docs/WIRING.md). ESP GPIO assignments are centralized in
 | [tools/](tools/) | Desktop demo, provisioning helper, and Python dependencies |
 | [tests/](tests/) | Host test runner, simulated peripherals, and helper tests |
 | [docs/](docs/) | Wiring, verification results, and board acceptance procedures |
-| [hardware/](hardware/) | [Parts list](hardware/PARTS.md) and hardware assembly reference |
+| [hardware/](hardware/) | [Parts list](hardware/PARTS.md) and untested enclosure prototype |
 
 The root retains the ESP-IDF project configuration and partition table. Generated build folders are ignored by Git and are not source files.
 

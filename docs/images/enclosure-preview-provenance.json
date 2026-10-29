@@ -1,0 +1,30 @@
+{
+  "method": "Orthographic CPU z-buffer of existing binary STL meshes, composed with Matplotlib; not a SolidWorks screenshot",
+  "assembly_z_mm": {
+    "base": 0.0,
+    "lid": 36.0,
+    "electronics_tray": 2.4
+  },
+  "exploded_extra_z_mm": {
+    "base": 0,
+    "lid": 104,
+    "electronics_tray": 66
+  },
+  "inputs": {
+    "base": {
+      "file": "hardware/enclosure/stl/base.stl",
+      "sha256": "b2625ae7f5d454fe2ce04020962f67f2c79cac60dd740274510457b7ec2ada7e",
+      "triangles": 5692
+    },
+    "lid": {
+      "file": "hardware/enclosure/stl/lid.stl",
+      "sha256": "c49677ae0dbee1580d147eb2494f37f3a7f6e4ae3eabb5c806773baeecc150d9",
+      "triangles": 4608
+    },
+    "electronics_tray": {
+      "file": "hardware/enclosure/stl/electronics_tray.stl",
+      "sha256": "03b017aed11c0f4b7201367fcef25827d0a02b0aaabacdf8abf81d374f39da8b",
+      "triangles": 12
+    }
+  }
+}

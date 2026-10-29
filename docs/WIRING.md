@@ -4,7 +4,7 @@ This proposed wiring has not been tested on the board. Numbers are **ESP GPIO nu
 
 ## Recommended assembly method
 
-Use the existing breakout boards with soldered wiring or a small perfboard for the first unit. First verify the connections on the bench, then check physical fit before soldering the permanent wiring. A custom carrier PCB is optional after the prototype connections and dimensions are verified. No custom PCB design currently exists in this repository.
+Use the existing breakout boards with soldered wiring or a small perfboard for the first unit. First verify the connections on the bench, then check physical fit before soldering the permanent wiring. The [hardware preview guide](HARDWARE_PREVIEWS.md) compares this approach with an optional future KiCad carrier PCB. No custom PCB design currently exists in this repository.
 
 Connect module pads/header pins and button terminals with insulated wire. Use sockets or detachable lid leads where space permits, insulate joints, and add strain relief. Keep the LiPo on the Feather's battery connector and use its built-in charger. The current enclosure has adhesive module mounts, not a custom-PCB mounting pattern.
 
@@ -53,4 +53,4 @@ Check continuity on four-leg switches: paired legs can already be connected. Enc
 
 Connect the protected 3.7 V nominal 1200 mAh LiPo to the Feather battery connector only after confirming polarity matches Adafruit's. Use the **built-in Feather charger**, without another charging module. USB-C must be a data cable. An optional slide switch shorts EN to GND to disable the regulator; it does not disconnect the battery and USB charging can remain active while logic is off. Keep the RTC cell separate.
 
-Insulate wiring and keep screws, terminals, and hard edges away from the pouch. Verify battery dimensions/lead bend, USB clearance, switch fit, and button travel against the actual enclosure before final assembly. Runtime, current draw, charging/thermal behavior, switchover, and fit must be measured; no battery-runtime estimate is claimed.
+Insulate wiring and keep screws, terminals, and hard edges away from the pouch. Verify battery dimensions/lead bend, USB clearance, switch fit, and button travel against the untested [enclosure](../hardware/enclosure/README.md). Runtime, current draw, charging/thermal behavior, switchover, and fit must be measured; no battery-runtime estimate is claimed.
