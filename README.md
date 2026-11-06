@@ -30,7 +30,7 @@ Follow [docs/WIRING.md](docs/WIRING.md). ESP GPIO assignments are centralized in
 | [docs/](docs/) | Wiring, verification results, and board acceptance procedures |
 | [hardware/](hardware/) | [Parts list](hardware/PARTS.md) and untested enclosure prototype |
 
-The root retains the ESP-IDF project configuration and partition table. Generated build folders are ignored by Git and are not source files.
+The root retains the ESP-IDF project configuration and partition table. Generated build folders are ignored by Git and are not source files. See [development setup and generated files](docs/DEVELOPMENT.md) for editor configuration, build outputs, and result locations.
 
 ## Build and flash
 
